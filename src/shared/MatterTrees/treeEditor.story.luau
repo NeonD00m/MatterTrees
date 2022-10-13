@@ -310,6 +310,9 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
             if parent then
                 createConnection(parent, node)
             end
+            for order, nodeInfo in info.Children do
+                buildNode(nodeInfo, node)
+            end
         end
         buildNode(pluginGlobal.loadData)
     else
