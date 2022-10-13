@@ -63,7 +63,7 @@ pluginButton.Click:Connect(function()
             pluginActive = true
             pluginGlobal.currentTreeEditing = selected[1]
             local required = require(selected[1])
-            if required == treeDefaultCode and compiler.checkTable(required) then
+            if compiler.checkTable(required) then
                 pluginGlobal.loadData = required
             end
 
