@@ -1,4 +1,3 @@
---!strict
 local Fusion = require(script.Parent.Fusion)
 
 local New = Fusion.New
@@ -107,14 +106,14 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
             position = nil
         end
         this = newNode({
-            Class = "Task",
-            Title = "New Node",
+            Class = class,
+            Title = title,
             Position = position,
             Container = Background.Container,
 
             OnNodeChanged = function(prevClass, curClass)
                 if curClass == "Root" then
-                    this:Destroy()
+                    this:Destroy() --destroy if they change it to a root?
                 end
                 --don't need to delete task module if prev is task
             end,
@@ -154,8 +153,6 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
 
             InputBegan = function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    print("ROOT NODEE DRAGGING")
-                    print("root:", this)
                     dragUI = this
                     dragging = true
                     dragStart = input.Position
@@ -176,6 +173,7 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
                 end
             end,
         }, pluginGlobal)
+        return this
     end
 
     local function createConnection(parentNode, childNode)
@@ -184,7 +182,7 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
         local index = connectionIndex
         connectionIndex += 1
 
-        local line = Line(State(inst), State(Vector2.new(0, 0)), State(childNode.ToConnect), function()
+        local line = Line(State(inst), State(Vector2.new(0, 0)), State(childNode:WaitForChild("ToConnect")), function()
             nodeConnections[index] = nil
         end)
         line.Parent = Background.Connections
@@ -305,13 +303,48 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
     if pluginGlobal.loadData then
         --use loadData
         print("has load data")
-        local function buildNode(info, parent)
-            local node = createNode(info.Position, info.Class, info.Title)
-            if parent then
-                createConnection(parent, node)
+        local function buildNode(info, nodeParent)
+            local node = nil
+            if nodeParent == nil then --ROOT
+                node = newNode({
+                    Class = info.Class,
+                    Title = info.Title,
+                    Container = Background.Container,
+
+                    FromConnect = function(...)
+                        FromConnect(node.FromConnect, ...)
+                    end,
+
+                    InputBegan = function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                            dragUI = node
+                            dragging = true
+                            dragStart = input.Position
+                            startPos = node.Position
+
+                            input.Changed:Connect(function()
+                                if input.UserInputState == Enum.UserInputState.End then
+                                    dragUI = nil
+                                    dragging = false
+                                end
+                            end)
+                        end
+                    end,
+
+                    InputChanged = function(input)
+                        if input.UserInputType == Enum.UserInputType.MouseMovement then
+                            dragInput = input
+                        end
+                    end,
+                }, pluginGlobal)
+            else
+                node = createNode(info.Position, info.Class, info.Title)
+                createConnection(nodeParent, node)
             end
-            for order, nodeInfo in info.Children do
-                buildNode(nodeInfo, node)
+            if info.Children then
+                for order, nodeInfo in info.Children do
+                    buildNode(nodeInfo, node)
+                end
             end
         end
         buildNode(pluginGlobal.loadData)
@@ -329,8 +362,6 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
 
             InputBegan = function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    -- print("ROOT NODEE DRAGGING")
-                    -- print("root:", root)
                     dragUI = root
                     dragging = true
                     dragStart = input.Position

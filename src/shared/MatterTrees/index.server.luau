@@ -23,6 +23,7 @@ local screenGui = Fusion.New "ScreenGui" {
 local treeDefaultCode = [[return {
     Class = "Root",
     Title = "New ]] .. treeName .. [[",
+    Position = UDim2.new(),
 
     Children = {
         
@@ -64,7 +65,10 @@ pluginButton.Click:Connect(function()
             pluginGlobal.currentTreeEditing = selected[1]
             local required = require(selected[1])
             if compiler.checkTable(required) then
+                print("passed compiler check for loaddata")
                 pluginGlobal.loadData = required
+            else
+                print("didn't pass")
             end
 
             ui = story(screenGui, pluginGlobal, function(connections: {})
@@ -77,9 +81,9 @@ pluginButton.Click:Connect(function()
                 local newSource = compiler.toString(dataTable)
                 pluginGlobal.currentTreeEditing.Source = newSource
 
-                if testPlugin then
-                    print("[MatterTrees] FINAL STRING:", newSource)
-                end
+                -- if testPlugin then
+                --     print("[MatterTrees] FINAL STRING:", newSource)
+                -- end
 
                 local tasks = {}
                 for _, v in nodes do
