@@ -22,6 +22,7 @@ local function Node(props)
     local node = nil
     local classState = State(props.Class)
     local prevTitle = props.Title
+    print("NODE CREATED WITH CLASS: ", props.Class)
 
     node = New "Frame" {
         Name = if props.Class == "Root" then "RootNodeFrame" else "NodeFrame",
@@ -86,13 +87,12 @@ local function Node(props)
                 end),
                 AnchorPoint = Vector2.new(0.5, 0),
                 Position = UDim2.new(0.5, 0, 0, 35),
-                Value = props.Class or "nil",
+                Value = props.Class or "Task",
                 Options = {
                     "Root",
                     "Selector",
                     "Sequence",
                     "Task",
-                    -- "nil",
                 },
                 OnSelected = function(value)
                     if props.OnNodeChanged then
@@ -102,7 +102,7 @@ local function Node(props)
                     if node and node:FindFirstChild("Top") then
                         node.Top.Back.BackgroundColor3 = classColors[value]
                     else
-                        print("node doesn't have a top frame apparently")
+                        warn("node doesn't have a top frame apparently")
                     end
                 end,
             },

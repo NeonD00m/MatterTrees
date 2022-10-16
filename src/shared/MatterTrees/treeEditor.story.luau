@@ -61,7 +61,6 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
             end
 
             table.insert(connections, input.Changed:Connect(function(property)
-                print("CONNECTING:", inst, input)
                 if property == "Position" and input then
                     targetState:set(input.Position)
                 elseif property == "UserInputState" and input.UserInputState == Enum.UserInputState.End then
@@ -101,20 +100,25 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
     end
 
     local function createNode(position: UDim2 | nil, class: string, title: string)
+        print("create node called with: ", typeof(class), class)
         local this = nil
         if typeof(position) ~= "UDim2" then
             position = nil
         end
+        if typeof(class) ~= "string" then
+            class = nil
+        end
         this = newNode({
-            Class = class,
-            Title = title,
+            Class = class or "Task",
+            Title = title or "New Node",
             Position = position,
             Container = Background.Container,
 
             OnNodeChanged = function(prevClass, curClass)
-                if curClass == "Root" then
-                    this:Destroy() --destroy if they change it to a root?
-                end
+                print("ONNODECHANGED: ", prevClass, curClass, class)
+                -- if curClass == "Root" then
+                --     this:Destroy() --destroy if they change it to a root?
+                -- end
                 --don't need to delete task module if prev is task
             end,
 
@@ -345,6 +349,8 @@ local function story(parent, pluginGlobal, onSave: () -> boolean)
                 for order, nodeInfo in info.Children do
                     buildNode(nodeInfo, node)
                 end
+            else
+                print(info.Title, "children is nil")
             end
         end
         buildNode(pluginGlobal.loadData)
